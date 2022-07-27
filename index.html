@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Predict the Make of a Car</title>
+    <script src="lib/ml5.min.js"></script>
+</head>
+<body>
+    <h1>Select an Image to Classify</h1><br/>
+    <p id="result"></p>
+    <h2>Jaguar Images</h2><br/>
+    <button type="button" onclick="loadImages('j1')">
+        <img src="jaguar/jaguar_f-type.jpg" alt="Jaguar1" crossorigin="anonymous" id="j1" width="400" height="250">
+    </button>
+    <button type="button" onclick="loadImages('j2')">
+        <img src="jaguar/2021-jaguar-f-type-svr-rendering.jpg" alt="Jaguar2" crossorigin="anonymous" id="j2" width="400" height="250">
+    </button>
+    <button type="button" onclick="loadImages('j3')">
+        <img src="jaguar/jaguar_xf_05.jpg" alt="Jaguar3" crossorigin="anonymous" id="j3" width="400" height="250">
+    </button>
+    <button type="button" onclick="loadImages('j4')">
+        <img src="jaguar/jaguar_xj.jpg" alt="Jaguar4" crossorigin="anonymous" id="j4" width="400" height="250">
+    </button>
+    <button type="button" onclick="loadImages('j5')">
+        <img src="jaguar/2021-jaguar-f-type.jpg" alt="Jaguar5" crossorigin="anonymous" id="j5" width="400" height="250">
+    </button>
+    <button type="button" onclick="loadImages('j6')">
+        <img src="jaguar/Jaguar-F-type-1_jp_2740172b.jpg" alt="Jaguar6" crossorigin="anonymous" id="j6" width="400" height="250">
+    </button>
+    <button type="button" onclick="loadImages('j7')">
+        <img src="jaguar/jaguar-f-type-coupe-petrol-7e506a721fd3.jpg" alt="Jaguar7" crossorigin="anonymous" id="j7" width="400" height="250">
+    </button>
+    <button type="button" onclick="loadImages('j8')">
+        <img src="jaguar/636444415755104549MN.jpg" alt="Jaguar8" crossorigin="anonymous" id="j8" width="400" height="250">
+    </button><br/>
+
+    <h2>BMW Images</h2><br/>
+    <button type="button" onclick="loadImages('b1')">
+        <img src="bmw/2014-bmw-m3-50_800x0w.jpg" alt="BMW1" crossorigin="anonymous" id="b1" width="400" height="250">
+    </button>
+    <button type="button" onclick="loadImages('b2')">
+        <img src="bmw/bmw-m5-2018.jpg" alt="BMW2" crossorigin="anonymous" id="b2" width="400" height="250">
+    </button>
+    <button type="button" onclick="loadImages('b3')">
+        <img src="bmw/11-bmw-m5.jpg" alt="BMW3" crossorigin="anonymous" id="b3" width="400" height="250">
+    </button>
+    <button type="button" onclick="loadImages('b4')">
+        <img src="bmw/22de4b030d898b786a37c157b79315e2.jpg" alt="BMW4" crossorigin="anonymous" id="b4" width="400" height="250">
+    </button>
+    <button type="button" onclick="loadImages('b5')">
+        <img src="bmw/bmw-m3-ferrari-red-images-04.jpg" alt="BMW5" crossorigin="anonymous" id="b5" width="400" height="250">
+    </button>
+    <button type="button" onclick="loadImages('b6')">
+        <img src="bmw/bmw-m3-looks-amazing-29_1600x0w.jpg" alt="BMW6" crossorigin="anonymous" id="b6" width="400" height="250">
+    </button>
+    <button type="button" onclick="loadImages('b7')">
+        <img src="bmw/BMW_6_Series_Gran_Coupe.jpg" alt="BMW7" crossorigin="anonymous" id="b7" width="400" height="250">
+    </button>
+    <button type="button" onclick="loadImages('b8')">
+        <img src="bmw/p90304854_highres_the-new-bmw-m3-cs-05.jpg" alt="BMW8" crossorigin="anonymous" id="b8" width="400" height="250">
+    </button>
+
+    <script>
+        var i = 0;
+        var numTimes = 5;
+        // Jaguar images
+        var jArray = ["j1", "j2", "j3", "j4", "j5", "j6", "j7", "j8"];
+        var jArrayClone = jArray.slice(0);
+        // BMW images
+        var bArray = ["b1", "b2", "b3", "b4", "b5", "b6", "b7", "b8"];
+        var bArrayClone = bArray.slice(0);
+        // Iterator array
+        var iArray = [jArray, bArray];
+        // Results
+        var resultsArray = [];
+
+        var imageID = "";
+        var imageTag = "";
+        // Create the feature extractor
+        let features = ml5.featureExtractor("MobileNet", modelLoaded);
+        const classifier = features.classification();
+
+        function loadImages(id) {
+            imageID = id;
+            imageTag = "";
+            var imageIndex = iArray[0].indexOf(imageID);
+            if (imageIndex == -1) {
+                imageIndex = iArray[1].indexOf(imageID);
+                iArray[1].splice(imageIndex, 1);
+                imageTag = "BMW";
+            }
+            else {
+                iArray[0].splice(imageIndex, 1);
+                imageTag = "Jaguar";
+            }
+
+            for (var x = 0; x < iArray.length; x++) {
+                var tag = "Jaguar";
+                if (x == 1) {
+                    tag = "BMW";
+                }
+                for (var y = 0; y < iArray[x].length; y++) {
+                    if (x == 1 && y == iArray[x].length - 1) {
+                        classifier.addImage(document.getElementById(iArray[x][y]), tag, imagesLoaded);
+                    }
+                    else {
+                        classifier.addImage(document.getElementById(iArray[x][y]), tag);
+                    }
+                }
+            }
+            //var image = document.getElementById(iArray[imageIndex]);
+        }
+        function modelLoaded() {
+            console.log("Model Loaded!");
+        }
+        function imagesLoaded() {
+            classifier.train(function(loss) {
+                console.log(loss);
+                if (loss == null) {
+                    classifyImage(imageID);
+                }
+            });
+        }
+        function classifyImage(id) {
+            classifier.classify(document.getElementById(id), gotResult);
+        }
+        function gotResult(err, result) {
+            if (err) {
+                console.error(err);
+            }
+            // Run the classifier multiple times to
+            // get multiple results which is more
+            // accurate than just one result
+            resultsArray[i] = result;
+            if (i < numTimes - 1) {
+                imagesLoaded();
+                i++;
+            }
+            else {
+                var count = 0;
+                for (var j = 0; j < resultsArray.length; j++) {
+                    console.log("Result number " + (j + 1) + " is " + resultsArray[j]);
+                    if (resultsArray[j] == imageTag) {
+                        count++;
+                    }
+                }
+                // Calculate the overall accuaracy
+                var calc = (count / numTimes) * 100;
+                var calcString = calc.toString() + "%";
+                console.log("Accuracy: " + calcString);
+                document.getElementById("result").innerHTML = "" + imageTag + " was recognised with " + calcString + " accuracy!";
+                i = 0;
+                jArray = jArrayClone;
+                bArray = bArrayClone;
+            }
+        }
+    </script>
+</body>
+</html>
